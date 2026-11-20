@@ -1,0 +1,19 @@
+{
+  "doc_type": "act",
+  "supplier_name": "ТОО «Тау-Кен Сервис»",
+  "supplier_bin": null,
+  "doc_number": "14",
+  "doc_date": null,
+  "currency": "KZT",
+  "total_amount": 120500,
+  "vat_amount": null,
+  "line_items": [
+    {
+      "name": "Монтаж вентиляции",
+      "qty": 1,
+      "price": 120500
+    }
+  ],
+  "field_confidence": {},
+  "warnings": []
+}

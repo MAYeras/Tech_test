@@ -1,0 +1,24 @@
+{
+  "doc_type": "invoice",
+  "supplier_name": "ТОО \"Astana Logistics\"",
+  "supplier_bin": "180140005678",
+  "doc_number": "114",
+  "doc_date": "2026-10-21",
+  "currency": "USD",
+  "total_amount": 4200.5,
+  "vat_amount": null,
+  "line_items": [
+    {
+      "name": "Аренда сервера, мес.",
+      "qty": 12,
+      "price": 300
+    },
+    {
+      "name": "Лицензия ПО",
+      "qty": 1,
+      "price": 600.5
+    }
+  ],
+  "field_confidence": {},
+  "warnings": []
+}

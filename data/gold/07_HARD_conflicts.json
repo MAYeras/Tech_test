@@ -1,0 +1,22 @@
+{
+  "doc_type": "invoice",
+  "supplier_name": "ТОО \"Жана Тас\"",
+  "supplier_bin": "200940007711",
+  "doc_number": "311",
+  "doc_date": "2026-10-03",
+  "currency": "KZT",
+  "total_amount": 125000,
+  "vat_amount": null,
+  "line_items": [
+    {
+      "name": "Плитка тротуарная",
+      "qty": 100,
+      "price": 1200
+    }
+  ],
+  "field_confidence": {},
+  "warnings": [
+    "CONFLICT_DATE",
+    "CONFLICT_TOTAL"
+  ]
+}

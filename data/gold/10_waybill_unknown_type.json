@@ -1,0 +1,19 @@
+{
+  "doc_type": "unknown",
+  "supplier_name": "АО «Мегастрой»",
+  "supplier_bin": "100440003344",
+  "doc_number": "5",
+  "doc_date": "2026-10-01",
+  "currency": "KZT",
+  "total_amount": 15000,
+  "vat_amount": 2068.97,
+  "line_items": [
+    {
+      "name": "Гвозди 100 мм",
+      "qty": 10,
+      "price": 1500
+    }
+  ],
+  "field_confidence": {},
+  "warnings": []
+}

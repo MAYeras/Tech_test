@@ -1,0 +1,24 @@
+{
+  "doc_type": "commercial_offer",
+  "supplier_name": "ТОО \"Техно Плюс\"",
+  "supplier_bin": "150240008899",
+  "doc_number": "КП-2026/31",
+  "doc_date": "2026-10-02",
+  "currency": "KZT",
+  "total_amount": 1070000,
+  "vat_amount": 147586.21,
+  "line_items": [
+    {
+      "name": "Ноутбук Lenovo ThinkBook",
+      "qty": 2,
+      "price": 520000
+    },
+    {
+      "name": "Мышь беспроводная",
+      "qty": 5,
+      "price": 6000
+    }
+  ],
+  "field_confidence": {},
+  "warnings": []
+}

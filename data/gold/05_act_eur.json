@@ -1,0 +1,19 @@
+{
+  "doc_type": "act",
+  "supplier_name": "ТОО \"ЭкоСервис KZ\"",
+  "supplier_bin": "120640011223",
+  "doc_number": "7",
+  "doc_date": "2026-09-15",
+  "currency": "EUR",
+  "total_amount": 2500,
+  "vat_amount": 344.83,
+  "line_items": [
+    {
+      "name": "Консультационные услуги",
+      "qty": 10,
+      "price": 250
+    }
+  ],
+  "field_confidence": {},
+  "warnings": []
+}
