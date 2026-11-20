@@ -1,7 +1,3 @@
-"""Извлечение полей из счетов / КП / актов: LLM (Groq) -> валидация -> Python-аудит.
-
-Запуск:  GROQ_API_KEY=... python real.py [файл.txt]
-"""
 from __future__ import annotations
 
 import json
@@ -83,6 +79,10 @@ SYSTEM_PROMPT = """Ты извлекаешь поля из текста дело
 8. doc_type: invoice | commercial_offer | act | unknown. Накладная, письмо и всё прочее — unknown.
 9. currency: KZT (тенге/тг/₸), USD, EUR или null.
 10. Двуязычное название поставщика (каз./рус.) — бери русскую форму.
+11. supplier_name — название организации, которая выставила документ (поставщик/исполнитель/продавец),
+вместе с организационно-правовой формой, как в документе: «ТОО "Название"», «АО «Название»». Организация из подписи
+письма или из текста, не относящегося к счёту/КП/акту/накладной, поставщиком не является — тогда null.
+12. doc_number — только сам номер, без слов «№», «No», «Ne».
 """
 
 
@@ -97,7 +97,7 @@ _client = None
 
 
 def groq_call(messages: list[dict]) -> str:
-    """Один вызов Groq. Импорт ленивый: без пакета groq и без ключа работают mock-режим и eval."""
+    """Один вызов Groq. Импорт ленивый, чтобы отсутствие пакета или ключа давало понятный BACKEND_ERROR."""
     global _client
     if _client is None:
         from groq import Groq
@@ -155,7 +155,9 @@ def audit_and_enrich(llm_data: LLMDetectOutput, raw_text: str) -> tuple[FinalRec
     else:
         confidence["doc_type"] = 0.95
 
-    # ---- название и номер должны быть в тексте
+    # ---- номер: убрать «№»/«No»/«Ne», которые модель иногда оставляет; название и номер должны быть в тексте
+    if d["doc_number"]:
+        d["doc_number"] = re.sub(r"^(?:№\s*|N[oOеe°]\.?\s+)", "", d["doc_number"].strip()) or None
     if d["supplier_name"] and checks.canon(d["supplier_name"]) not in checks.canon(text):
         drop("supplier_name", "UNGROUNDED_NAME", "названия поставщика нет в тексте")
     if d["doc_number"] and d["doc_number"].lower() not in text.lower():

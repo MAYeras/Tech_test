@@ -1,9 +1,5 @@
-#!/usr/bin/env python3
-"""Мини-eval для real.py:  python eval_real.py [--backend mock|chaos|groq] [--chaos-mode M] [--brief] [-v]
-
-  groq  — настоящий вызов (нужен GROQ_API_KEY и пакет groq).
-
-Печатает:
+"""
+#печатает:
   * точность по каждому полю отдельно;
   * галлюцинации (в эталоне null, а поле заполнено) и пропуски (в эталоне значение, а null) — РАЗДЕЛЬНО;
   * «неверное значение» (оба не null, но разные) — третья категория, чтобы цифры сходились;
@@ -124,26 +120,25 @@ def conf_calibration(finals: dict, golds: dict):
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--backend", default="mock", choices=["mock", "chaos", "groq"])
-    ap.add_argument("--chaos-mode", default="hallucinate",
-                    choices=["clean", "bad_json", "bad_type", "hallucinate", "stubborn"])
     ap.add_argument("--max-attempts", type=int, default=real.MAX_ATTEMPTS)
     ap.add_argument("--brief", action="store_true", help="одна сводка вместо полного отчёта")
     ap.add_argument("-v", "--verbose", action="store_true", help="показать каждое расхождение с эталоном")
     a = ap.parse_args(argv)
 
     golds = {p.stem: json.loads(p.read_text(encoding="utf-8")) for p in sorted((ROOT / "data/gold").glob("*.json"))}
-    if a.backend == "groq":
-        call = real.groq_call
-        call.name = "groq:" + real.MODEL
+    call = real.groq_call
+    call.name = "groq:" + real.MODEL
     backend = call
-    finals, raws, stats = {}, {}, Counter()
+    finals, raws, stats, stats_err = {}, {}, Counter(), {}
     unparsable_raw = 0
     for name in golds:
         text = (ROOT / "data/docs" / f"{name}.txt").read_text(encoding="utf-8")
         final, info = real.run_pipeline(text, call, a.max_attempts)
         finals[name] = final.model_dump(mode="json")
-        stats["ok" if info.ok else "failed"] += 1
+        is_backend_err = (not info.ok) and final.warnings and final.warnings[0].startswith("BACKEND_ERROR")
+        stats["ok" if info.ok else ("backend_error" if is_backend_err else "failed")] += 1
+        if is_backend_err and "first_error" not in stats_err:
+            stats_err["first_error"] = final.warnings[0]
         stats["retried"] += int(info.ok and info.attempts > 1)
         stats["attempts_total"] += info.attempts
         for iv in info.fixes:
@@ -163,10 +158,13 @@ def main(argv=None) -> int:
         rt = totals(score(parsed, {k: golds[k] for k in parsed})[0]) if parsed else Counter()
         print(f"{backend.name:<20} FINAL: верно {t['correct']}/{cells}, галлюц. {t['hallucination']}, "
               f"пропусков {t['omission']}, неверно {t['wrong']} | валидация ok {stats['ok']}/{n} "
-              f"(ретраев {stats['retried']}, провалов {stats['failed']}) | "
+              f"(ретраев {stats['retried']}, провалов {stats['failed']}, ошибок API {stats['backend_error']}) | "
               f"RAW до аудита: галлюц. {rt['hallucination']}, пропусков {rt['omission']}, неверно {rt['wrong']}")
         return 0 if t["hallucination"] == 0 else 1
     print(f"== real.py eval | backend={backend.name} | документов: {n} ==\n")
+    if stats["backend_error"]:
+        print(f"!!! ОШИБКА API на {stats['backend_error']} из {n} документов — отчёт ниже НЕДЕЙСТВИТЕЛЕН (модель не отвечала).")
+        print(f"!!! {stats_err['first_error']}\n")
     print(f"{'поле':<15}{'верно':>7}{'галлюц.':>9}{'пропуск':>9}{'неверно':>9}{'точность':>10}")
     for f in SCORED:
         c = per[f]
@@ -182,7 +180,8 @@ def main(argv=None) -> int:
     ok_c, bad_c = conf_calibration(finals, golds)
     print(f"\nСредняя field_confidence: у верных полей {ok_c}; у неверных {bad_c}")
     print(f"\nВалидация: прошли {stats['ok']}/{n}, из них с ретраем {stats['retried']}, "
-          f"провал после {a.max_attempts} попыток {stats['failed']}; всего вызовов модели {stats['attempts_total']}")
+          f"не исправился за {a.max_attempts} попытки {stats['failed']}, ошибка API {stats['backend_error']}; "
+          f"всего вызовов модели {stats['attempts_total']}")
     guard = {k[6:]: v for k, v in stats.items() if k.startswith("guard:")}
     print(f"Вмешательства аудита: {dict(guard) if guard else 'нет'}")
 
